@@ -3,6 +3,8 @@ package jiratool.service;
 import jiratool.beans.card.JiraCard;
 import jiratool.beans.card.JiraCards;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FileService {
@@ -31,6 +33,60 @@ public class FileService {
             });
             contentBuffer.append("\r\n");
         });
+
+        return contentBuffer.toString();
+    }
+
+    public static String generateCycleTime(JiraCards jiraCards, final List<String> cardStages) {
+
+        final StringBuffer contentBuffer = new StringBuffer();
+        contentBuffer.append("[");
+
+        jiraCards.getIssues().forEach(jiraCard -> {
+            contentBuffer
+                    .append("{")
+                    .append("'jiraId'")
+                    .append(":").append("'").append(jiraCard.getKey()).append("'");
+
+
+            final List<Double> cycleTimeList = new ArrayList<>();
+            final List<Double> wipTime = new ArrayList<>();
+            cardStages.forEach(stage -> {
+                if(!"done".equalsIgnoreCase(stage)) {
+                    final String stageCostStr = getLeadTimes(jiraCard, stage);
+                    final double stageCost;
+                    if ("-".equals(stageCostStr)) {
+                        stageCost = 0d;
+                    } else {
+                        stageCost = Double.parseDouble(stageCostStr);
+                    }
+
+                    cycleTimeList.add(stageCost);
+                    if (stage.contains("Progress")) {
+                        wipTime.add(stageCost);
+                    }
+                }
+            });
+
+            final double totalCost = cycleTimeList.stream().mapToDouble(Double::doubleValue).sum();
+            final double wipCost = wipTime.stream().mapToDouble(Double::doubleValue).sum();
+            DecimalFormat df = new DecimalFormat("#.##");
+
+            contentBuffer
+                    .append(",")
+                    .append("'totalCost'")
+                    .append(":")
+                    .append(df.format(totalCost));
+
+            contentBuffer
+                    .append(",")
+                    .append("'wipCost'")
+                    .append(":")
+                    .append(df.format(wipCost));
+            contentBuffer.append("},");
+        });
+
+        contentBuffer.append("]");
 
         return contentBuffer.toString();
     }

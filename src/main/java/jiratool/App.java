@@ -25,8 +25,8 @@ public class App {
 
         String responseStr;
         switch (requestEvent.getPath()) {
-            case "/jira/cardCycleTime":
-                responseStr = generateNormalResponse(getCardCycleTime(requestEvent.getHeaders()));
+            case "/jira/cardsCycleTime":
+                responseStr = generateNormalResponse(getCardsCycleTime(requestEvent.getHeaders()));
                 break;
             case "/jira/getCardsFile":
                 responseStr = generateNormalResponse(getCardsFile(requestEvent.getHeaders()));
@@ -48,6 +48,16 @@ public class App {
         return responseStr;
     }
 
+    private String getCardsCycleTime(Map<String, String> header) throws UnirestException, IOException {
+        final String jiraToken = header.get("jira-token");
+        final String jql = header.get("jql");
+        final List<String> cardStages = new ArrayList<>(Arrays.asList(header.get("card-stage").split(",")))
+                .stream().map(String::trim).collect(Collectors.toList());
+        JiraCards jiraCards = enrichCardDetail(JiraService.getCards(jql, jiraToken), jiraToken);
+        return FileService.generateCycleTime(jiraCards, cardStages);
+    }
+
+    @Deprecated
     private Map<String, Double> getCardCycleTime(Map<String, String> header) throws UnirestException, IOException {
         final String jiraToken = header.get("jira-token");
         final String jiraId = header.get("jira-id");
