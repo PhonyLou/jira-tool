@@ -23,9 +23,21 @@ public class FileService {
                     .append(jiraCard.getKey()).append(",")
                     .append(jiraCard.getFields().getIssuetype().getName()).append(",")
                     .append(jiraCard.getFields().getStatus().getStatusCategory().getName()).append(",")
-                    .append(jiraCard.getFields().getSummary().replaceAll(",", " ")).append(",")
-                    .append(jiraCard.getFields().getPriority().getName()).append(",")
-                    .append(jiraCard.getFields().getAssignee().getName()).append(",")
+                    .append(jiraCard.getFields().getSummary().replaceAll(",", " ")).append(",");
+
+            if (null == jiraCard.getFields().getPriority()) {
+                contentBuffer.append("-").append(",");
+            } else {
+                contentBuffer.append(jiraCard.getFields().getPriority().getName()).append(",");
+            }
+
+            if (null == jiraCard.getFields().getAssignee()) {
+                contentBuffer.append("-").append(",");
+            } else {
+                contentBuffer.append(jiraCard.getFields().getAssignee().getName()).append(",");
+            }
+
+            contentBuffer
                     .append(jiraCard.getFields().getReporter().getName());
             cardStages.forEach(stage -> {
                 final String stageCostStr = getLeadTimes(jiraCard, stage);
